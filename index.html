@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Comunicar evidências com IA</title>
+<meta name="description" content="Como usar IA para transformar uma síntese em versões curtas sem mudar o que a evidência diz.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0E3D5F; --navy-2:#165079; --navy-ink:#0A2C45;
+  --green:#A1C62E; --green-ink:#4D6810; --green-bg:#F0F5E1;
+  --paper:#F4F6F3; --surface:#FFFFFF; --ink:#1B2A35; --muted:#566570; --line:#D6DDE1;
+  --alert:#A9402B; --alert-bg:#FAECE8; --warn:#8A5A0B; --warn-bg:#FBF3E2;
+  --radius-s:6px; --radius-m:10px;
+  --font:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 17px/1.6 var(--font);-webkit-font-smoothing:antialiased}
+a{color:var(--navy-2);text-underline-offset:3px}
+a:hover{color:var(--navy-ink)}
+:focus-visible{outline:3px solid var(--green);outline-offset:2px;border-radius:4px}
+h1,h2,h3,h4{line-height:1.2;margin:0;font-weight:650;letter-spacing:-.01em}
+p{margin:0 0 .8em}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+@media (max-width:640px){.wrap{padding:0 16px}body{font-size:16px}}
+
+/* topo */
+.top{background:var(--navy);color:#fff;padding:56px 0 40px;position:relative;overflow:hidden}
+.top h1{font-size:clamp(34px,5vw,56px);font-weight:700;letter-spacing:-.025em;max-width:16ch}
+.top p.lead{font-size:clamp(17px,2vw,20px);max-width:58ch;color:#D7E3EC;margin:18px 0 0}
+.rail-mark{position:absolute;right:24px;top:28px;opacity:.9}
+@media (max-width:860px){.rail-mark{display:none}}
+.principles{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:36px;border-top:1px solid rgba(255,255,255,.18)}
+.principles div{padding:16px 20px 0 0;font-size:15px;color:#E6EEF4}
+.principles strong{display:block;color:#fff;font-weight:600;margin-bottom:2px}
+@media (max-width:760px){.principles{grid-template-columns:1fr}.principles div{padding:12px 0 0}}
+
+/* abas */
+.tabs{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.tabs .wrap{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.tabs .wrap::-webkit-scrollbar{display:none}
+.tab{appearance:none;border:0;background:none;font:600 15px var(--font);color:var(--muted);padding:16px 14px 14px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+.tab:hover{color:var(--navy)}
+.tab[aria-selected="true"]{color:var(--navy);border-bottom-color:var(--green)}
+section.panel{display:none;padding:44px 0 72px}
+section.panel.on{display:block}
+.intro{max-width:70ch;margin-bottom:32px}
+.intro h2{font-size:30px;margin-bottom:10px;color:var(--navy-ink)}
+.intro p{color:var(--muted)}
+
+/* caminho */
+.flow{display:grid;grid-template-columns:380px 1fr;gap:40px;align-items:start}
+@media (max-width:900px){.flow{grid-template-columns:1fr}}
+.rail{list-style:none;margin:0;padding:0;position:relative}
+.rail::before{content:"";position:absolute;left:21px;top:10px;bottom:10px;width:3px;background:var(--navy);opacity:.18;border-radius:2px}
+.st{position:relative;margin:0 0 6px;scroll-margin-top:64px}
+.st > button{all:unset;box-sizing:border-box;display:grid;grid-template-columns:46px 1fr;gap:12px;align-items:start;width:100%;padding:10px 12px 10px 0;cursor:pointer;border-radius:var(--radius-m)}
+.st > button:focus-visible{outline:3px solid var(--green)}
+.st .dot{width:44px;height:44px;border-radius:50%;background:var(--surface);border:3px solid var(--navy);display:grid;place-items:center;font:700 16px var(--font);color:var(--navy);position:relative;z-index:1;transition:background .15s,color .15s}
+.st .tt{padding-top:2px}
+.st .tt b{display:block;font-size:17px;font-weight:650;color:var(--ink)}
+.st .tt span{display:block;font-size:14.5px;color:var(--muted);line-height:1.45}
+.st.on .dot{background:var(--navy);color:#fff}
+.st.on > button{background:var(--surface);box-shadow:0 0 0 1px var(--line)}
+.st > button:hover .dot{background:var(--green-bg)}
+.st.on > button:hover .dot{background:var(--navy)}
+.dec{position:relative;display:grid;grid-template-columns:46px 1fr;gap:12px;align-items:center;margin:2px 0 10px;padding-right:12px}
+.dec .dia{width:22px;height:22px;transform:rotate(45deg);background:var(--green);margin-left:11px;position:relative;z-index:1;border-radius:3px}
+.dec p{margin:0;font-size:14.5px;line-height:1.45;color:var(--ink)}
+.dec p em{font-style:normal;font-weight:600}
+.detail{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);padding:28px 30px;position:sticky;top:76px;max-height:calc(100vh - 96px);overflow:auto}
+@media (max-width:900px){.detail.desk{display:none}}
+.detail.inline{display:none;margin:4px 0 14px 58px;padding:20px}
+@media (max-width:900px){.st.on .detail.inline{display:block}}
+@media (max-width:520px){.detail.inline{margin-left:0}}
+.detail h3{font-size:24px;color:var(--navy-ink);margin-bottom:6px}
+.detail .goal{color:var(--muted);margin-bottom:18px}
+.blk{margin-top:20px}
+.blk h4{font-size:14px;font-weight:650;color:var(--navy);margin-bottom:8px;letter-spacing:0}
+.blk ul{margin:0;padding-left:20px}
+.blk li{margin-bottom:6px}
+.err{border-left:3px solid var(--alert);background:var(--alert-bg);padding:12px 14px;border-radius:0 var(--radius-s) var(--radius-s) 0;margin-bottom:8px}
+.err b{color:var(--alert)}
+.err p{margin:4px 0 0}
+.chk li{list-style:none;position:relative;padding-left:4px}
+.chk{padding-left:22px!important}
+.chk li::before{content:"";position:absolute;left:-20px;top:6px;width:13px;height:13px;border:2px solid var(--green-ink);border-radius:3px}
+.tools{display:flex;flex-wrap:wrap;gap:6px}
+.tools span{background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:3px 11px;font-size:14px}
+.signal li{color:var(--warn)}
+.signal li span{color:var(--ink)}
+
+/* prompt */
+.prompt{position:relative;background:#F1F4F6;border:1px solid var(--line);border-radius:var(--radius-s);margin-top:6px}
+.prompt pre{margin:0;padding:16px 16px 16px;white-space:pre-wrap;word-wrap:break-word;font:400 13.5px/1.6 var(--mono);color:#1F2E38;max-height:340px;overflow:auto}
+.copy{position:absolute;top:8px;right:8px;appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--navy);font:600 13px var(--font);padding:5px 10px;border-radius:var(--radius-s);cursor:pointer}
+.copy:hover{border-color:var(--navy)}
+.copy.done{background:var(--green-bg);border-color:var(--green-ink);color:var(--green-ink)}
+.prompt pre{padding-top:40px}
+.note{font-size:14.5px;color:var(--muted);margin-top:8px}
+
+/* erros */
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.chip{appearance:none;border:1px solid var(--line);background:var(--surface);font:500 14px var(--font);color:var(--ink);padding:6px 13px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.errs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+@media (max-width:860px){.errs{grid-template-columns:1fr}}
+.ec{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);padding:22px 24px}
+.ec header{display:flex;justify-content:space-between;gap:12px;align-items:baseline;margin-bottom:10px}
+.ec h3{font-size:19px;color:var(--alert)}
+.ec .where{font-size:13px;color:var(--muted);white-space:nowrap}
+.ec dl{margin:0;display:grid;grid-template-columns:108px 1fr;gap:8px 14px;font-size:15.5px}
+.ec dt{color:var(--muted);font-weight:500}
+.ec dd{margin:0}
+.ec .ex{background:var(--warn-bg);border-radius:var(--radius-s);padding:10px 12px;font-size:15px;margin-top:12px}
+.ec .ex b{color:var(--warn)}
+@media (max-width:520px){.ec dl{grid-template-columns:1fr}.ec dt{margin-top:6px}}
+
+/* exemplo */
+.case{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);padding:28px 30px;margin-bottom:28px}
+@media (max-width:640px){.case,.detail{padding:20px 18px}}
+.case h3{font-size:22px;color:var(--navy-ink);margin-bottom:8px}
+.case > p{max-width:72ch}
+.tbl{width:100%;border-collapse:collapse;font-size:15px;margin-top:14px}
+.tbl th{text-align:left;font-weight:600;color:var(--navy);border-bottom:2px solid var(--navy);padding:8px 10px;vertical-align:bottom}
+.tbl td{border-bottom:1px solid var(--line);padding:10px;vertical-align:top}
+.tbl td:first-child{font-weight:500}
+.scroll{overflow-x:auto}
+.v{display:inline-block;font-size:13px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.v.ok{background:var(--green-bg);color:var(--green-ink)}
+.v.no{background:var(--alert-bg);color:var(--alert)}
+.v.at{background:var(--warn-bg);color:var(--warn)}
+.quote{font-size:14.5px;color:var(--muted);font-style:italic}
+.setup{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:16px 0 6px}
+@media (max-width:860px){.setup{grid-template-columns:1fr}}
+.setup div{border-top:3px solid var(--navy);padding-top:10px;font-size:15.5px}
+.setup b{display:block;color:var(--navy);margin-bottom:4px}
+.lessons{counter-reset:l;list-style:none;padding:0;margin:14px 0 0;display:grid;gap:12px}
+.lessons li{counter-increment:l;display:grid;grid-template-columns:34px 1fr;gap:10px}
+.lessons li::before{content:counter(l);width:28px;height:28px;border-radius:50%;background:var(--green);color:var(--navy-ink);display:grid;place-items:center;font-weight:700;font-size:14px}
+
+/* ferramentas */
+.toolgrid td:first-child a{font-weight:600}
+
+/* kit */
+.kit{display:grid;gap:22px}
+.ki{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);padding:26px 28px;display:grid;grid-template-columns:1fr 320px;gap:28px}
+@media (max-width:860px){.ki{grid-template-columns:1fr}}
+.ki h3{font-size:21px;color:var(--navy-ink);margin-bottom:6px}
+.ki .for{font-size:14px;color:var(--muted);margin-bottom:12px}
+.ki ol{margin:0;padding-left:20px}
+.ki ol li{margin-bottom:6px}
+.dl{display:inline-flex;align-items:center;gap:8px;background:var(--navy);color:#fff;text-decoration:none;font-weight:600;font-size:15px;padding:11px 16px;border-radius:var(--radius-s)}
+.dl:hover{background:var(--navy-2);color:#fff}
+.dl small{font-weight:400;opacity:.8}
+.side{border-left:1px solid var(--line);padding-left:24px}
+@media (max-width:860px){.side{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:16px}}
+.side p{font-size:15px}
+.all{display:flex;flex-wrap:wrap;align-items:center;gap:16px;background:var(--green-bg);border:1px solid #D3E2A6;border-radius:var(--radius-m);padding:20px 24px;margin-bottom:26px}
+.all p{margin:0;flex:1 1 300px}
+
+/* papeis */
+.role{display:inline-block;font-size:12.5px;font-weight:600;padding:2px 9px;border-radius:999px;line-height:1.5;white-space:nowrap}
+.role.ia{border:1.5px solid var(--navy);color:var(--navy);background:var(--surface)}
+.role.eq{background:var(--navy);color:#fff;border:1.5px solid var(--navy)}
+.role.es{background:var(--green);color:var(--navy-ink);border:1.5px solid var(--green)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:15px;color:var(--muted)}
+.legend .role{margin-left:8px}.legend .role:first-child{margin-left:0}
+.quem{display:grid;gap:8px;margin-top:4px}
+.quem div{display:grid;grid-template-columns:104px 1fr;gap:10px;align-items:start;font-size:15.5px}
+.quem .role{justify-self:start}
+.quem .must{font-weight:600;color:var(--green-ink)}
+.st .tt .tag{display:inline-block;margin-top:5px}
+.who{margin-top:44px}
+.who h3{font-size:22px;color:var(--navy-ink);margin-bottom:6px}
+.who td .role{margin-bottom:4px}
+/* caso */
+.jump{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 26px}
+.jump a{font-size:14px;font-weight:600;text-decoration:none;color:var(--navy);background:var(--surface);border:1px solid var(--line);padding:5px 11px;border-radius:999px}
+.jump a:hover{border-color:var(--navy)}
+.wk{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);padding:26px 30px;margin-bottom:20px;scroll-margin-top:70px}
+@media (max-width:640px){.wk{padding:20px 18px}}
+.wk header{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-bottom:16px}
+.wk .n{width:36px;height:36px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:700}
+.wk h3{font-size:22px;color:var(--navy-ink)}
+.wk .roles{display:flex;gap:6px;margin-left:auto}
+@media (max-width:640px){.wk .roles{margin-left:0;width:100%}}
+.wk-body.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);gap:28px;align-items:start}
+@media (max-width:960px){.wk-body.two{grid-template-columns:1fr}}
+.said,.human,.expert{border-radius:var(--radius-s);padding:12px 15px;margin:12px 0;font-size:15.5px}
+.said{background:#F1F4F6;border-left:3px solid var(--navy)}
+.said.bad{border-left-color:var(--alert);background:var(--alert-bg)}
+.human{background:#EAF0F5;border-left:3px solid var(--navy)}
+.expert{background:var(--green-bg);border-left:3px solid var(--green)}
+.said b,.human b,.expert b{display:block;color:var(--navy-ink);margin-bottom:3px}
+.expert ul{margin:8px 0 0;padding-left:20px}
+.figs{display:grid;gap:16px}
+figure{margin:0}
+figure img{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:var(--radius-s);background:#000}
+figure a:focus-visible img{outline:3px solid var(--green)}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:6px}
+.tbl.small{font-size:14.5px}
+.tbl.small td,.tbl.small th{padding:8px}
+.score .nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin-top:10px}
+@media (max-width:760px){.score .nums{grid-template-columns:1fr 1fr}}
+.score .nums div{border-top:3px solid var(--green);padding-top:10px;font-size:15px;color:var(--muted)}
+.score .nums b{display:block;font-size:40px;line-height:1.05;color:var(--navy-ink);font-weight:700}
+.scope{background:var(--warn-bg);border:1px solid #EBD7AE;border-radius:var(--radius-m);padding:16px 20px;font-size:15.5px;margin-bottom:28px;max-width:80ch}
+footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--muted);font-size:14.5px}
+footer p{max-width:80ch}
+@media print{.tabs,.copy,.top .rail-mark{display:none}section.panel{display:block!important}.detail{position:static}}
+
+/* faixa do fio condutor */
+.fio{margin-top:32px;border-top:1px solid rgba(255,255,255,.18);padding-top:16px;font-size:16px;color:#E6EEF4;max-width:80ch}
+.fio strong{color:#fff;font-weight:600}
+/* duas trilhas do caminho */
+.track{margin-top:8px}
+.track + .track{margin-top:48px}
+.track > h3{font-size:22px;color:var(--navy-ink);margin-bottom:16px}
+.st .tt .roles{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.st .tt .roles .role{display:inline-block;font-size:12.5px;line-height:1.5}
+.st .tt .role.ia{color:var(--navy)}.st .tt .role.eq{color:#fff}.st .tt .role.es{color:var(--navy-ink)}
+.detail .roles{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.detail .body{margin-bottom:6px}
+.detail .lbl{margin-top:14px;padding:10px 14px;border-radius:var(--radius-s);font-size:15.5px}
+.detail .lbl b{color:var(--navy-ink)}
+.detail .lbl.alerta{background:var(--warn-bg);border-left:3px solid var(--warn)}
+.detail .lbl.alerta b{color:var(--warn)}
+.detail .lbl.conf{background:var(--green-bg);border-left:3px solid var(--green)}
+.detail .lbl.real{background:#EAF0F5;border-left:3px solid var(--navy)}
+/* galeria de capturas */
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;margin-top:20px;align-items:start}
+.case .steps{margin:6px 0 14px;padding-left:22px}
+.case .steps li{margin-bottom:6px}
+.inl b{display:inline!important;margin:0!important}
+/* título em uma linha no desktop; no celular quebra antes de "com IA" */
+.top h1{max-width:none}
+.top h1 .nw{white-space:nowrap}
+/* prints-chave em largura cheia e os demais recolhidos */
+.keyshots{display:grid;gap:26px;margin-top:22px}
+.keyshots figcaption{font-size:14.5px}
+details.more{margin-top:24px;border:1px solid var(--line);border-radius:var(--radius-m);padding:0 18px}
+details.more summary{cursor:pointer;padding:14px 0;font-weight:600;color:var(--navy)}
+details.more[open]{padding-bottom:18px}
+details.more .gallery{margin-top:4px}
+#exemplo figure a{cursor:zoom-in}
+/* visualizador de prints */
+.lb{position:fixed;inset:0;z-index:50;background:rgba(10,44,69,.9);display:none;align-items:center;justify-content:center;padding:24px}
+.lb.on{display:flex}
+.lb figure{max-width:min(1200px,100%);max-height:100%;display:flex;flex-direction:column;align-items:center}
+.lb figure img{max-width:100%;max-height:calc(100vh - 110px);width:auto;border:0}
+.lb figcaption{color:#fff;text-align:center;font-size:15px}
+.lb button{position:absolute;top:10px;right:14px;background:none;border:0;color:#fff;font-size:36px;line-height:1;cursor:pointer;padding:6px 10px}
+/* erros em cartões abaixo de 700 px */
+@media (max-width:699px){
+.tbl.cards thead{display:none}
+.tbl.cards,.tbl.cards tbody,.tbl.cards tr,.tbl.cards td{display:block;width:100%}
+.tbl.cards tr{border:1px solid var(--line);border-radius:var(--radius-m);padding:14px 16px;margin-bottom:14px;background:var(--surface)}
+.tbl.cards td{border:0;padding:4px 0}
+.tbl.cards td:first-child{font-weight:700;color:var(--navy-ink);font-size:16px;padding-bottom:6px}
+.tbl.cards td[data-l]::before{content:attr(data-l) ": ";font-weight:600;color:var(--navy)}
+}
+/* degradê indicando mais abas */
+@media (max-width:760px){
+.tabs::after{content:"";position:absolute;top:0;right:0;bottom:1px;width:48px;pointer-events:none;background:linear-gradient(to right,rgba(255,255,255,0),var(--surface) 80%);transition:opacity .2s}
+.tabs.end::after{opacity:0}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <svg class="rail-mark" width="420" height="300" viewBox="0 0 420 300" aria-hidden="true">
+      <path d="M20 40 H400" stroke="#fff" stroke-opacity=".22" stroke-width="3"/>
+      <g fill="#0E3D5F" stroke="#fff" stroke-width="3"><circle cx="40" cy="40" r="14"/><circle cx="120" cy="40" r="14"/><circle cx="200" cy="40" r="14"/><circle cx="280" cy="40" r="14"/><circle cx="360" cy="40" r="14"/></g>
+      <rect x="152" y="32" width="16" height="16" transform="rotate(45 160 40)" fill="#A1C62E"/>
+      <rect x="312" y="32" width="16" height="16" transform="rotate(45 320 40)" fill="#A1C62E"/>
+      <path d="M360 54 V90 H200 V54" fill="none" stroke="#A1C62E" stroke-width="2" stroke-dasharray="5 5"/>
+    </svg>
+    <h1>Comunicar evidências <span class="nw">com IA</span></h1>
+    <p class="lead">Como usar IA para transformar uma síntese em versões curtas sem mudar o que a evidência diz.</p>
+    <div class="fio"><strong>Simplificar sem mudar o que a evidência diz.</strong> Se a versão curta afirma mais do que a fonte, ela está errada, por mais clara que seja.</div>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Seções">
+  <div class="wrap" role="tablist">
+    <button class="tab" role="tab" id="t-caminho" aria-controls="caminho" aria-selected="true">O caminho</button>
+    <button class="tab" role="tab" id="t-erros" aria-controls="erros" aria-selected="false">Erros e soluções</button>
+    <button class="tab" role="tab" id="t-exemplo" aria-controls="exemplo" aria-selected="false">Exemplo conferido</button>
+    <button class="tab" role="tab" id="t-ferramentas" aria-controls="ferramentas" aria-selected="false">Ferramentas</button>
+    <button class="tab" role="tab" id="t-kit" aria-controls="kit" aria-selected="false">Kit para baixar</button>
+  </div>
+</nav>
+
+<main>
+<section class="panel on" id="caminho" role="tabpanel" aria-labelledby="t-caminho">
+  <div class="wrap">
+    <div class="intro">
+      <h2>O caminho</h2>
+      <p class="legend"><span class="role ia">IA</span> a IA ajuda <span class="role eq">Equipe</span> decisão da equipe <span class="role es">Especialista</span> exige quem conhece o tema</p>
+    </div>
+    <div class="track">
+      <div class="flow"><ol class="rail" data-g="cam"></ol><aside class="detail desk" data-g="cam" aria-live="polite"></aside></div>
+    </div>
+  </div>
+</section>
+
+<section class="panel" id="erros" role="tabpanel" aria-labelledby="t-erros">
+  <div class="wrap">
+    <div class="intro"><h2>Erros e soluções</h2></div>
+    <div class="case">
+      <div class="scroll"><table class="tbl cards">
+        <thead><tr><th>Erro</th><th>Como aparece</th><th>Solução</th></tr></thead>
+        <tbody>
+<tr><td>Certeza inflada</td><td data-l="Como aparece">"pode ter efeito" vira "funciona"</td><td data-l="Solução">exigir no pedido que o grau de certeza de cada achado seja mantido</td></tr>
+<tr><td>Limitação cortada</td><td data-l="Como aparece">triagem, risco de viés, autorrelato e tamanho dos estudos somem do resumo</td><td data-l="Solução">listar as limitações no pedido e conferir se voltaram</td></tr>
+<tr><td>Lista reorganizada</td><td data-l="Como aparece">duas listas diferentes da fonte viram "quatro condições"</td><td data-l="Solução">conferir toda contagem ("três fatores", "quatro prioridades") contra a fonte</td></tr>
+<tr><td>Recomendação além da evidência</td><td data-l="Como aparece">a versão diz o que fazer quando a fonte só diz o que se sabe</td><td data-l="Solução">pedir que a versão separe o que a evidência permite decidir do que não permite</td></tr>
+<tr><td>Pergunta vira oportunidade</td><td data-l="Como aparece">"a pergunta em aberto é" vira "existe uma oportunidade de"</td><td data-l="Solução">comparar as frases de conclusão com a conclusão da fonte, palavra por palavra</td></tr>
+<tr><td>Contexto perdido</td><td data-l="Como aparece">estudo com tutores em tutoria on-line vira estudo com professores</td><td data-l="Solução">manter país, público e formato de cada estudo citado</td></tr>
+<tr><td>Generalização indevida</td><td data-l="Como aparece">resultado de outro país vira recomendação local</td><td data-l="Solução">dizer de onde vem cada resultado</td></tr>
+<tr><td>Número sem fonte</td><td data-l="Como aparece">porcentagem ou contagem que não está no original</td><td data-l="Solução">conferir todo número contra a fonte</td></tr>
+<tr><td>Tom de venda</td><td data-l="Como aparece">adjetivos e chamadas que a fonte não sustenta</td><td data-l="Solução">proibir adjetivos de destaque no pedido</td></tr>
+<tr><td>Conferência frouxa</td><td data-l="Como aparece">a IA aponta a diferença e classifica como sustentada</td><td data-l="Solução">regra no prompt: se houver diferença, não é sustentada; veredito da equipe</td></tr>
+<tr><td>Autoria inventada</td><td data-l="Como aparece">cabeçalho sugere coautoria ou endosso que não existe</td><td data-l="Solução">copiar a autoria e a data da fonte</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+</section>
+
+<section class="panel" id="exemplo" role="tabpanel" aria-labelledby="t-exemplo">
+  <div class="wrap">
+    <div class="intro">
+      <h2>Exemplo conferido</h2>
+      <p>O caso abaixo foi rodado de verdade no ChatGPT, em outubro de 2026, e conferido contra a fonte por busca de texto exato. A fonte é uma síntese de evidências sobre plataformas digitais e trabalho docente, com 37 estudos.</p>
+    </div>
+
+    <article class="case" id="caso">
+      <h3>Caso · Um resumo de uma página para a diretoria</h3>
+      <p>Passo a passo do teste:</p>
+      <ol class="steps">
+        <li>Pedido simples, sem regras ("faça um resumo de uma página desta síntese para a diretoria").</li>
+        <li>O mesmo pedido, com estrutura fixa e regras.</li>
+        <li>Uma terceira conversa conferindo a versão sem regras frase por frase.</li>
+      </ol>
+      <div class="said bad inl"><b>Resultado:</b> Na versão sem regras, 38 afirmações: 30 sustentadas, 5 afirmam mais do que a fonte, 3 mudam o contexto, nenhuma fora da fonte. Os números estavam todos certos. O que mudou foi o grau de certeza: sumiram cinco limitações do método, duas listas viraram "quatro condições" e a conclusão da fonte, uma pergunta em aberto, virou "uma oportunidade".</div>
+      <div class="said inl"><b>Com as regras:</b> estrutura mantida, limites presentes e 32 citações, todas literais e na página certa.</div>
+      <div class="said inl"><b>Na conferência:</b> 80 citações, todas literais (7 com a página trocada), mas 7 classificações erradas, 6 delas com o problema descrito na própria avaliação.</div>
+      <div class="human inl"><b>Lição:</b> A IA não errou os números; errou o grau de certeza. E a IA que confere acerta as citações mais do que o veredito.</div>
+      <h4 style="font-size:18px;color:var(--navy-ink);margin:26px 0 4px">A frase e a fonte</h4>
+      <div class="scroll"><table class="tbl cards">
+        <thead><tr><th>Frase do pré-teste</th><th>O que a síntese diz</th></tr></thead>
+        <tbody>
+<tr><td>"Priorizar tecnologias que fortaleçam o professor, especialmente ferramentas de planejamento, correção automatizada, ensino adaptativo e feedback pedagógico."</td><td data-l="O que a síntese diz">p. 10 · "Tratar a IA generativa para planejamento como aposta a testar." E a prioridade da síntese é outra lista: "Priorizar ferramentas que chegam ao aluno pelas mãos do professor: conteúdo estruturado e planos de aula, vídeos para uso em sala, relatórios de desempenho que o professor usa para ajustar a instrução, software adaptativo integrado à aula."</td></tr>
+<tr><td>"A literatura destaca quatro condições recorrentes: mediação ativa do professor, formação e acompanhamento durante a implementação, infraestrutura adequada e integração das ferramentas às necessidades pedagógicas."</td><td data-l="O que a síntese diz">p. 7 · "Cinco características se repetem nos casos de melhor resultado". p. 9 · "Quase nenhum estudo analisado acompanha os programas depois do fim da intervenção [...] Com essa ressalva, quatro elementos aparecem associados a ganhos mais duradouros: um apoio humano que cobra e acompanha; apoio à implementação nos primeiros meses; um patamar mínimo de infraestrutura; formação desenhada com os professores."</td></tr>
+<tr><td>"Para [a organização], existe uma oportunidade de combinar apoio à implementação com avaliações rigorosas, produzindo evidências que orientem decisões de expansão nas redes públicas brasileiras."</td><td data-l="O que a síntese diz">p. 10 · "Para [a organização], a pergunta em aberto é se o tempo liberado vira orientação individual, como no ensaio brasileiro. Uma expansão deveria vir com avaliação que meça custo por aluno e uso do tempo."</td></tr>
+        </tbody>
+      </table></div>
+      <div class="keyshots">
+<figure><a href="assets/teste/S1_simples_03.png"><img src="assets/teste/S1_simples_03.png" alt="Resumo com as condições de sucesso e as implicações estratégicas"></a><figcaption>As &quot;quatro condições&quot; e as &quot;implicações estratégicas&quot; que a fonte não tem. (nomes de instituição ocultados)</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_33.png"><img src="assets/teste/S3_conferencia_33.png" alt="Limitações sobre autorrelato e intervenções heterogêneas"></a><figcaption>O parecer da conferência sobre autorrelato e heterogeneidade.</figcaption></figure>
+      </div>
+      <details class="more"><summary>Ver todos os prints do teste (48)</summary><div class="gallery">
+<figure><a href="assets/teste/S1_simples_01.png"><img src="assets/teste/S1_simples_01.png" alt="Pedido de resumo de uma página e o início da resposta" loading="lazy"></a><figcaption>Pedido simples, sem regras, e o começo do resumo. (nomes de instituição ocultados)</figcaption></figure>
+<figure><a href="assets/teste/S1_simples_02.png"><img src="assets/teste/S1_simples_02.png" alt="Resumo com os achados sobre tempo e aprendizagem" loading="lazy"></a><figcaption>Os números estão certos: tempo, aprendizagem, IA generativa.</figcaption></figure>
+<figure><a href="assets/teste/S1_simples_04.png"><img src="assets/teste/S1_simples_04.png" alt="Conclusão do resumo para a tomada de decisão" loading="lazy"></a><figcaption>A pergunta em aberto da fonte virou &quot;uma oportunidade&quot;. (nomes de instituição ocultados)</figcaption></figure>
+<figure><a href="assets/teste/S2_regras_01.png"><img src="assets/teste/S2_regras_01.png" alt="Pedido com estrutura e regras" loading="lazy"></a><figcaption>O mesmo pedido, com estrutura fixa e regras.</figcaption></figure>
+<figure><a href="assets/teste/S2_regras_02.png"><img src="assets/teste/S2_regras_02.png" alt="Resumo com a pergunta e os achados" loading="lazy"></a><figcaption>Pergunta e o que se sabe, com país e contexto. (nomes de instituição ocultados)</figcaption></figure>
+<figure><a href="assets/teste/S2_regras_03.png"><img src="assets/teste/S2_regras_03.png" alt="Seção sobre o grau de segurança" loading="lazy"></a><figcaption>IA generativa como resultado misto e a seção &quot;com que segurança&quot;.</figcaption></figure>
+<figure><a href="assets/teste/S2_regras_04.png"><img src="assets/teste/S2_regras_04.png" alt="Seções de decisão e de limites" loading="lazy"></a><figcaption>O que a síntese permite e não permite decidir, e os limites.</figcaption></figure>
+<figure><a href="assets/teste/S2_regras_05.png"><img src="assets/teste/S2_regras_05.png" alt="Lista de trechos de apoio" loading="lazy"></a><figcaption>Os trechos literais de apoio, com a página.</figcaption></figure>
+<figure><a href="assets/teste/S2_regras_06.png"><img src="assets/teste/S2_regras_06.png" alt="Trechos de apoio sobre gestão do trabalho e prática" loading="lazy"></a><figcaption>Trechos de apoio, continuação.</figcaption></figure>
+<figure><a href="assets/teste/S2_regras_07.png"><img src="assets/teste/S2_regras_07.png" alt="Trechos de apoio sobre IA generativa e experiência profissional" loading="lazy"></a><figcaption>Trechos de apoio, continuação.</figcaption></figure>
+<figure><a href="assets/teste/S2_regras_08.png"><img src="assets/teste/S2_regras_08.png" alt="Trechos de apoio sobre segurança" loading="lazy"></a><figcaption>Trechos de apoio da seção de segurança.</figcaption></figure>
+<figure><a href="assets/teste/S2_regras_09.png"><img src="assets/teste/S2_regras_09.png" alt="Trechos de apoio sobre decisões" loading="lazy"></a><figcaption>Trechos de apoio das decisões e das restrições. (nomes de instituição ocultados)</figcaption></figure>
+<figure><a href="assets/teste/S2_regras_10.png"><img src="assets/teste/S2_regras_10.png" alt="Trechos de apoio sobre limites" loading="lazy"></a><figcaption>Trechos de apoio dos limites e a nota de fidelidade.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_01.png"><img src="assets/teste/S3_conferencia_01.png" alt="Pedido de conferência frase por frase" loading="lazy"></a><figcaption>Conferência numa conversa nova: o pedido.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_02.png"><img src="assets/teste/S3_conferencia_02.png" alt="Resultado geral da conferência" loading="lazy"></a><figcaption>O resultado geral: &quot;majoritariamente sustentada&quot;. (nomes de instituição ocultados)</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_03.png"><img src="assets/teste/S3_conferencia_03.png" alt="Tabela de critérios" loading="lazy"></a><figcaption>Os critérios de classificação.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_04.png"><img src="assets/teste/S3_conferencia_04.png" alt="Conferência da mensagem central" loading="lazy"></a><figcaption>Frase por frase, com o trecho literal.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_05.png"><img src="assets/teste/S3_conferencia_05.png" alt="Conferência da mensagem central, continuação" loading="lazy"></a><figcaption>Conferência, continuação.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_06.png"><img src="assets/teste/S3_conferencia_06.png" alt="Conferência sobre substituição do professor e IA generativa" loading="lazy"></a><figcaption>Conferência, continuação.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_07.png"><img src="assets/teste/S3_conferencia_07.png" alt="Tabela de acesso e formação" loading="lazy"></a><figcaption>Acesso e formação: tudo marcado como sustentado.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_08.png"><img src="assets/teste/S3_conferencia_08.png" alt="Trechos e avaliação de acesso e formação" loading="lazy"></a><figcaption>&quot;Média internacional&quot;: a avaliação aponta a diferença e a frase fica sustentada.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_09.png"><img src="assets/teste/S3_conferencia_09.png" alt="Tabela de economia de tempo" loading="lazy"></a><figcaption>Economia de tempo.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_10.png"><img src="assets/teste/S3_conferencia_10.png" alt="Tabela de aprendizagem" loading="lazy"></a><figcaption>Aprendizagem.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_11.png"><img src="assets/teste/S3_conferencia_11.png" alt="Trechos e avaliação de aprendizagem" loading="lazy"></a><figcaption>Aprendizagem: o contexto da meta-análise aparece só na avaliação.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_12.png"><img src="assets/teste/S3_conferencia_12.png" alt="Tabela de IA generativa" loading="lazy"></a><figcaption>IA generativa.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_13.png"><img src="assets/teste/S3_conferencia_13.png" alt="Tabela de bem-estar docente" loading="lazy"></a><figcaption>Bem-estar docente.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_14.png"><img src="assets/teste/S3_conferencia_14.png" alt="Trechos e avaliação de bem-estar" loading="lazy"></a><figcaption>Bem-estar: &quot;faltam&quot; no lugar de &quot;quase não aparecem&quot;, e a frase fica sustentada.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_15.png"><img src="assets/teste/S3_conferencia_15.png" alt="Conferência das condições recorrentes" loading="lazy"></a><figcaption>As &quot;quatro condições&quot;: a avaliação descreve o problema e a classificação fica sustentada.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_16.png"><img src="assets/teste/S3_conferencia_16.png" alt="Avaliação das condições e trecho do caso brasileiro" loading="lazy"></a><figcaption>Condições e o caso brasileiro. (nomes de instituição ocultados)</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_17.png"><img src="assets/teste/S3_conferencia_17.png" alt="Conferência do caso brasileiro e da seção de implicações" loading="lazy"></a><figcaption>Caso brasileiro e a seção de implicações. (nomes de instituição ocultados)</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_18.png"><img src="assets/teste/S3_conferencia_18.png" alt="Conferência da frase introdutória e da prioridade 1" loading="lazy"></a><figcaption>&quot;Quatro prioridades&quot; que a fonte não tem, classificadas como sustentadas.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_19.png"><img src="assets/teste/S3_conferencia_19.png" alt="Conferência das prioridades 1 e 2" loading="lazy"></a><figcaption>Prioridades 1 e 2.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_20.png"><img src="assets/teste/S3_conferencia_20.png" alt="Conferência da prioridade 3" loading="lazy"></a><figcaption>Prioridade 3 marcada como &quot;afirma mais&quot;.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_21.png"><img src="assets/teste/S3_conferencia_21.png" alt="Conferência da prioridade 4" loading="lazy"></a><figcaption>Prioridade 4. (nomes de instituição ocultados)</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_22.png"><img src="assets/teste/S3_conferencia_22.png" alt="Conferência da principal lacuna" loading="lazy"></a><figcaption>A lacuna de conhecimento.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_23.png"><img src="assets/teste/S3_conferencia_23.png" alt="Conferência da lacuna, continuação" loading="lazy"></a><figcaption>Lacuna, continuação.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_24.png"><img src="assets/teste/S3_conferencia_24.png" alt="Conferência sobre longo prazo" loading="lazy"></a><figcaption>Longo prazo e sustentabilidade.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_25.png"><img src="assets/teste/S3_conferencia_25.png" alt="Conferência da conclusão, frase 5.1" loading="lazy"></a><figcaption>Conclusão: a primeira frase.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_26.png"><img src="assets/teste/S3_conferencia_26.png" alt="Conferência da conclusão, frase 5.2" loading="lazy"></a><figcaption>A &quot;oportunidade&quot; marcada como &quot;afirma mais&quot;. (nomes de instituição ocultados)</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_27.png"><img src="assets/teste/S3_conferencia_27.png" alt="Conferência da fonte e dos tipos de estudo" loading="lazy"></a><figcaption>Fonte e tipos de estudos. (nomes de instituição ocultados)</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_28.png"><img src="assets/teste/S3_conferencia_28.png" alt="Conferência sobre revisão por pares" loading="lazy"></a><figcaption>Revisão por pares só nos &quot;estudos internacionais&quot;, classificada como sustentada.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_29.png"><img src="assets/teste/S3_conferencia_29.png" alt="Início da lista de limitações omitidas" loading="lazy"></a><figcaption>As limitações omitidas.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_30.png"><img src="assets/teste/S3_conferencia_30.png" alt="Tabela de limitações omitidas" loading="lazy"></a><figcaption>Limitações omitidas, com trecho e página.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_31.png"><img src="assets/teste/S3_conferencia_31.png" alt="Tabela de limitações omitidas, continuação" loading="lazy"></a><figcaption>Limitações omitidas, continuação.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_32.png"><img src="assets/teste/S3_conferencia_32.png" alt="Limitações relevantes para a diretoria" loading="lazy"></a><figcaption>As limitações mais relevantes para a diretoria.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_34.png"><img src="assets/teste/S3_conferencia_34.png" alt="Síntese da auditoria" loading="lazy"></a><figcaption>Só duas classificações &quot;afirma mais&quot;; &quot;não identifiquei afirmações inteiramente ausentes&quot;.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_35.png"><img src="assets/teste/S3_conferencia_35.png" alt="Tabela do parecer final" loading="lazy"></a><figcaption>O parecer final: números &quot;adequados&quot;, limitações &quot;incompleta&quot;.</figcaption></figure>
+<figure><a href="assets/teste/S3_conferencia_36.png"><img src="assets/teste/S3_conferencia_36.png" alt="Conclusão da conferência" loading="lazy"></a><figcaption>Veredito: &quot;substancialmente sustentada&quot;.</figcaption></figure>
+      </div></details>
+    </article>
+  </div>
+</section>
+
+<section class="panel" id="ferramentas" role="tabpanel" aria-labelledby="t-ferramentas">
+  <div class="wrap">
+    <div class="intro"><h2>Ferramentas</h2></div>
+    <div class="case">
+      <div class="scroll"><table class="tbl toolgrid"><tbody>
+<tr><td><b>Chats de uso geral (ChatGPT, Claude, Gemini)</b></td><td>bons para gerar as versões e conferir. Use um projeto ou Gem com as instruções do kit para não repetir as regras a cada conversa, e faça a conferência sempre numa conversa nova.</td></tr>
+<tr><td><b>Editor de texto com comparação</b></td><td>o controle de alterações do Word ou do Google Docs mostra o que mudou entre a versão da IA e a versão final.</td></tr>
+<tr><td><b>Planilha de conferência</b></td><td>para textos longos, uma linha por frase da versão curta, com o trecho da fonte ao lado, deixa a decisão visível.</td></tr>
+<tr><td><b>Dados restritos</b></td><td>prefira a ferramenta institucional da organização quando houver; textos com dado pessoal ou informação restrita não vão para ferramenta aberta.</td></tr>
+      </tbody></table></div>
+    </div>
+  </div>
+</section>
+
+<section class="panel" id="kit" role="tabpanel" aria-labelledby="t-kit">
+  <div class="wrap">
+    <div class="intro"><h2>Kit para baixar</h2></div>
+    <div class="kit">
+      <article class="ki">
+        <div>
+          <h3>Prompts por etapa</h3>
+          <p>prompts-por-etapa.md · os prompts do caminho: resumo para liderança, roteiro de apresentação, nota interna e conferência</p>
+          
+        </div>
+        <div class="side">
+          <a class="dl" href="downloads/prompts-por-etapa.md" download>Baixar <small>.md</small></a>
+        </div>
+      </article>
+      <article class="ki">
+        <div>
+          <h3>Modelo de resumo para liderança</h3>
+          <p>modelo-resumo-lideranca.docx · estrutura do resumo de uma página, com o checklist no fim</p>
+          
+        </div>
+        <div class="side">
+          <a class="dl" href="downloads/modelo-resumo-lideranca.docx" download>Baixar <small>.docx</small></a>
+        </div>
+      </article>
+      <article class="ki">
+        <div>
+          <h3>Modelo de roteiro de apresentação</h3>
+          <p>modelo-roteiro-apresentacao.docx · roteiro de cinco minutos em cinco blocos</p>
+          
+        </div>
+        <div class="side">
+          <a class="dl" href="downloads/modelo-roteiro-apresentacao.docx" download>Baixar <small>.docx</small></a>
+        </div>
+      </article>
+      <article class="ki">
+        <div>
+          <h3>Modelo de nota interna</h3>
+          <p>modelo-nota-interna.docx · nota de até 150 palavras</p>
+          
+        </div>
+        <div class="side">
+          <a class="dl" href="downloads/modelo-nota-interna.docx" download>Baixar <small>.docx</small></a>
+        </div>
+      </article>
+      <article class="ki">
+        <div>
+          <h3>Checklist de simplificação</h3>
+          <p>checklist-simplificacao.md · as 7 perguntas de simplificação</p>
+          
+        </div>
+        <div class="side">
+          <a class="dl" href="downloads/checklist-simplificacao.md" download>Baixar <small>.md</small></a>
+        </div>
+      </article>
+      <article class="ki">
+        <div>
+          <h3>Planilha de conferência</h3>
+          <p>planilha-conferencia.xlsx · uma linha por frase: frase da versão curta, trecho da fonte, página, classificação, decisão da equipe (validação na classificação: sustentada, afirma mais, não está no original, muda o contexto)</p>
+          
+        </div>
+        <div class="side">
+          <a class="dl" href="downloads/planilha-conferencia.xlsx" download>Baixar <small>.xlsx</small></a>
+        </div>
+      </article>
+      <article class="ki">
+        <div>
+          <h3>Instruções para um projeto</h3>
+          <p>instrucoes-projeto.md · instruções para colar num projeto do ChatGPT, do Claude ou num Gem</p>
+          <h4 style="font-size:15px;color:var(--navy);margin:16px 0 8px">Como usar</h4><ol><li>No ChatGPT: crie um projeto e cole o texto nas instruções do projeto.</li><li>No Gemini: crie um Gem e cole o texto nas instruções.</li><li>No Claude: crie um projeto e cole o texto nas instruções do projeto.</li><li>Teste com um texto que você já resumiu e confira a versão contra a fonte antes de confiar.</li></ol><p class="note">Textos com dado pessoal ou informação restrita não vão para ferramenta aberta; prefira a ferramenta institucional.</p>
+        </div>
+        <div class="side">
+          <a class="dl" href="downloads/instrucoes-projeto.md" download>Baixar <small>.md</small></a>
+        </div>
+      </article>
+      <article class="ki">
+        <div>
+          <h3>Skill de comunicação de evidências para o Claude</h3>
+          <p>skill-comunicar-evidencias.zip · skill do Claude que gera a versão curta com estrutura fixa, lista o trecho de apoio de cada frase e roda a conferência como etapa separada, com a regra de que diferença apontada não é sustentada</p>
+          <h4 style="font-size:15px;color:var(--navy);margin:16px 0 8px">Como instalar</h4><ol><li>Baixe o arquivo <code>skill-comunicar-evidencias.zip</code>. Não descompacte.</li><li>Em Configurações, na área de capacidades, confirme que a execução de código está ligada. Em planos Team e Enterprise, quem administra a organização libera isso.</li><li>Vá em Personalizar, depois Skills. Clique em "+", "Criar skill" e "Enviar uma skill", e escolha o .zip.</li><li>Num chat novo, anexe o texto original, diga quem vai ler e peça a versão curta.</li></ol><p class="note">Os nomes dos menus mudam com o tempo. A <a href="https://support.claude.com/en/articles/12512180-use-skills-in-claude">ajuda oficial sobre skills</a> tem o caminho atualizado.</p>
+        </div>
+        <div class="side">
+          <a class="dl" href="downloads/skill-comunicar-evidencias.zip" download>Baixar <small>.zip</small></a>
+        </div>
+      </article>
+    </div>
+    <div class="all" style="margin:26px 0 0">
+      <p><strong>kit-completo.zip</strong> · todos os arquivos acima, num só zip</p>
+      <a class="dl" href="downloads/kit-completo.zip" download>Baixar o kit completo <small>.zip</small></a>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Print ampliado"><button type="button" aria-label="Fechar">×</button><figure><img alt=""><figcaption></figcaption></figure></div>
+
+<footer>
+  <div class="wrap">
+    <p>Material de apoio sobre uso de IA na comunicação de evidências, outubro de 2026. Os exemplos são respostas reais de uma ferramenta de IA, conferidas contra a fonte; a fonte do exemplo é uma síntese de evidências real, citada só por trechos. Ferramentas e modelos mudam rápido; o método de conferência é o que vale levar.</p>
+  </div>
+</footer>
+
+<script>
+const ROLE={"ia": "<span class=\"role ia\">IA</span>", "eq": "<span class=\"role eq\">Equipe</span>", "es": "<span class=\"role es\">Especialista</span>"};
+const DATA={cam:[{"id": 1, "t": "Definir público e decisão", "r": ["eq"], "body": "Antes de abrir qualquer ferramenta, escrever em uma frase quem vai ler e o que essa pessoa precisa decidir. É isso que define o que vem primeiro e o que se corta.", "x": [["alerta", "Sinal de alerta:", "\"para todo mundo\" ou \"para a diretoria\" sem dizer que decisão está em jogo."], ["conf", "Conferência:", "a frase está escrita antes do primeiro pedido."]]}, {"id": 2, "t": "Marcar o que não pode mudar", "r": ["eq", "es"], "body": "Listar o achado principal, o grau de certeza de cada achado (efeito, sem efeito, inconclusivo), o contexto dos estudos e as limitações do método. Essa lista entra no pedido.", "x": [["alerta", "Sinal de alerta:", "limitação que só aparece no fim da fonte, na seção de método."]]}, {"id": 3, "t": "Pedir a versão com estrutura e regras", "r": ["ia"], "body": "Usar um modelo com estrutura fixa e regras explícitas: nada que não esteja no texto, grau de certeza mantido, país e contexto dos estudos, sem adjetivos de destaque, e a lista dos trechos em que cada parte se apoia.", "x": [["real", "Exemplo real:", "no nosso teste, o mesmo resumo pedido sem regras cortou cinco limitações do método e criou \"implicações estratégicas\" para a organização; com as regras, manteve os limites e citou 32 trechos, todos literais e na página certa."]]}, {"id": 4, "t": "Conferir numa conversa separada", "r": ["ia"], "body": "Abrir uma conversa nova, colar o original e a versão curta e pedir a classificação de cada frase com o trecho literal que a sustenta.", "x": [["alerta", "Sinal de alerta:", "classificação \"sustentada\" com uma avaliação que aponta diferença."], ["real", "Exemplo real:", "no nosso teste, a IA que conferia achou o problema em seis frases e mesmo assim as classificou como sustentadas."]]}, {"id": 5, "t": "Decidir frase a frase", "r": ["eq", "es"], "body": "Usar as citações da conferência, mas decidir o veredito. Frase sem trecho que a sustente sai. Recomendação que a fonte não faz sai ou vira pergunta.", "x": [["conf", "Conferência:", "cada frase da versão curta cabe dentro da fonte."]]}, {"id": 6, "t": "Revisão por outra pessoa", "r": ["eq"], "body": "Quem não escreveu lê a versão curta com o checklist de simplificação, de preferência com o original ao lado.", "x": []}, {"id": 7, "t": "Registrar", "r": ["eq"], "body": "Guardar a versão final, a fonte, os prompts usados, a data e as frases que mudaram depois da conferência.", "x": []}]};
+/* abas */
+const tabs=[...document.querySelectorAll('.tab')];
+function show(id,push){tabs.forEach(t=>{const on=t.getAttribute('aria-controls')===id;t.setAttribute('aria-selected',on);t.tabIndex=on?0:-1});
+ document.querySelectorAll('section.panel').forEach(p=>p.classList.toggle('on',p.id===id));
+ if(push)history.replaceState(null,'','#'+id);}
+tabs.forEach((t,i)=>{t.addEventListener('click',()=>{show(t.getAttribute('aria-controls'),true);window.scrollTo({top:document.querySelector('.tabs').offsetTop,behavior:'smooth'})});
+ t.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){const n=tabs[(i+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length];n.focus();n.click()}})});
+const h=location.hash.slice(1); if(['caminho','erros','exemplo','ferramentas','kit'].includes(h))show(h,false);
+
+
+function detailHTML(s){
+ return `<h3>${s.id} · ${s.t}</h3><div class="roles">${s.r.map(k=>ROLE[k]).join('')}</div><p class="body">${s.body}</p>`+
+  s.x.map(([c,l,v])=>`<div class="lbl ${c}"><b>${l}</b> ${v}</div>`).join('');
+}
+document.querySelectorAll('.rail').forEach(rail=>{
+ const g=rail.dataset.g, detail=document.querySelector(`.detail.desk[data-g="${g}"]`);
+ DATA[g].forEach(s=>{
+  const li=document.createElement('li'); li.className='st'; li.dataset.id=s.id;
+  li.innerHTML=`<button type="button" aria-expanded="false"><span class="dot">${s.id}</span><span class="tt"><b>${s.t}</b><span class="roles">${s.r.map(k=>ROLE[k]).join('')}</span></span></button><div class="detail inline"></div>`;
+  li.querySelector(':scope > button').addEventListener('click',()=>select(s.id,true));
+  rail.appendChild(li);
+ });
+ function select(id,user){
+  const s=DATA[g].find(x=>x.id===id);
+  rail.querySelectorAll('.st').forEach(li=>{const on=+li.dataset.id===id;li.classList.toggle('on',on);li.querySelector(':scope > button').setAttribute('aria-expanded',on);li.querySelector('.detail.inline').innerHTML=on?detailHTML(s):''});
+  detail.innerHTML=detailHTML(s);
+  if(user&&window.matchMedia('(max-width:900px)').matches){rail.querySelector(`.st[data-id="${id}"]`).scrollIntoView({behavior:'smooth',block:'start'})}
+ }
+ select(1,false);
+});
+/* visualizador: clique amplia; Esc, × ou clique fora da imagem fecham */
+const lb=document.getElementById('lb'), lbImg=lb.querySelector('img'), lbCap=lb.querySelector('figcaption'); let lbFrom=null;
+function lbClose(){lb.classList.remove('on');lbImg.removeAttribute('src');if(lbFrom)lbFrom.focus();}
+document.querySelectorAll('#exemplo figure a').forEach(a=>a.addEventListener('click',ev=>{
+ ev.preventDefault(); lbFrom=a; const img=a.querySelector('img');
+ lbImg.src=a.getAttribute('href'); lbImg.alt=img.alt; lbCap.textContent=a.parentElement.querySelector('figcaption').textContent;
+ lb.classList.add('on'); lb.querySelector('button').focus();
+}));
+lb.addEventListener('click',ev=>{if(ev.target!==lbImg)lbClose();});
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&lb.classList.contains('on'))lbClose();});
+/* degradê das abas some quando a rolagem chega ao fim */
+const tabsNav=document.querySelector('.tabs'), tabsRow=tabsNav.querySelector('.wrap');
+function tabsEnd(){tabsNav.classList.toggle('end',tabsRow.scrollLeft+tabsRow.clientWidth>=tabsRow.scrollWidth-2);}
+tabsRow.addEventListener('scroll',tabsEnd,{passive:true}); window.addEventListener('resize',tabsEnd); tabsEnd();
+</script>
+</body>
+</html>
