@@ -27,21 +27,21 @@ Use o prompt da versão que precisa. Cole a lista da etapa 2 junto com o texto, 
 Prompt 1 · resumo para liderança
 
 ```
-Transforme o texto abaixo num resumo de uma página para a liderança de uma organização, seguindo exatamente esta estrutura: pergunta; o que se sabe; com que segurança; o que isso permite decidir e o que não permite; limites. Regras: não acrescente nenhuma informação, número ou recomendação que não esteja no texto; mantenha o grau de certeza de cada achado (se o texto diz que o efeito é inconclusivo, o resumo diz inconclusivo); mantenha o país e o contexto dos estudos; não use adjetivos de destaque. No fim, liste as frases do texto original em que cada parte do resumo se apoia.
+Transforme o texto abaixo num resumo de uma página para a liderança de uma organização, seguindo exatamente esta estrutura: pergunta; o que se sabe; com que segurança; o que isso permite decidir e o que não permite; limites. Regras: não acrescente nenhuma informação, número ou recomendação que não esteja no texto; mantenha o grau de certeza de cada achado (se o texto diz que o efeito é inconclusivo, o resumo diz inconclusivo); mantenha o país e o contexto dos estudos; mantenha cada número com a sua condição (cenário, rede, referência de preço, ano e sinal); não use adjetivos de destaque. No fim, liste as frases do texto original em que cada parte do resumo se apoia.
 [texto]
 ```
 
 Prompt 2 · roteiro de apresentação
 
 ```
-Com base só no texto abaixo, escreva um roteiro de apresentação de cinco minutos em cinco blocos: a pergunta e por que importa; o achado principal; com que segurança; o que isso significa para a decisão; o que ainda não se sabe. Para cada bloco, uma mensagem central em uma frase e o que dizer em até 80 palavras. Mesmas regras: nada que não esteja no texto, grau de certeza mantido, contexto dos estudos explícito.
+Com base só no texto abaixo, escreva um roteiro de apresentação de cinco minutos em cinco blocos: a pergunta e por que importa; o achado principal; com que segurança; o que isso significa para a decisão; o que ainda não se sabe. Para cada bloco, uma mensagem central em uma frase e o que dizer em até 80 palavras. Mesmas regras: nada que não esteja no texto, grau de certeza mantido, contexto dos estudos explícito; mantenha cada número com a sua condição (cenário, rede, referência de preço, ano e sinal).
 [texto]
 ```
 
 Prompt 3 · nota interna
 
 ```
-Com base só no texto abaixo, escreva uma nota de até 150 palavras para a comunicação interna de uma organização: o que é o estudo, o que mostra, com que segurança e onde ler mais. Linguagem simples, sem jargão, sem exagero. Não acrescente nada que não esteja no texto.
+Com base só no texto abaixo, escreva uma nota de até 150 palavras para a comunicação interna de uma organização: o que é o estudo, o que mostra, com que segurança e onde ler mais. Linguagem simples, sem jargão, sem exagero. Não acrescente nada que não esteja no texto e mantenha cada número com a sua condição.
 [texto]
 ```
 
@@ -52,7 +52,7 @@ Conferência humana: a versão segue a estrutura do modelo e traz a lista dos tr
 Prompt de conferência (rodar num chat novo)
 
 ```
-Abaixo estão um texto original e uma versão curta feita a partir dele. Para cada frase da versão curta, diga se ela está sustentada pelo original, citando o trecho literal. Classifique cada frase como: sustentada; afirma mais do que o original; não está no original; muda o contexto. Se a sua avaliação apontar qualquer diferença entre a frase e o original, a frase não pode ser classificada como sustentada. Liste à parte as limitações do original que a versão curta deixou de fora. Não reescreva a versão curta.
+Abaixo estão um texto original e uma versão curta feita a partir dele. Para cada frase da versão curta, diga se ela está sustentada pelo original, citando o trecho literal. Classifique cada frase como: sustentada; afirma mais do que o original; não está no original; muda o contexto. Se a sua avaliação apontar qualquer diferença entre a frase e o original, a frase não pode ser classificada como sustentada. Para cada número, diga se a condição (cenário, rede, referência de preço, ano e sinal) é a mesma do original; se não for, a frase muda o contexto. Liste à parte as limitações do original que a versão curta deixou de fora. Não reescreva a versão curta.
 Texto original: [texto]
 Versão curta: [versão]
 ```
@@ -73,7 +73,7 @@ Conferência humana: a equipe preenche a decisão de cada frase; frase sem trech
 
 ```
 Você vai revisar uma versão curta feita por outra pessoa, com o texto original ao lado. Para cada pergunta do checklist abaixo, responda sim ou não e aponte a frase da versão curta que motivou a resposta. Não reescreva a versão.
-Checklist: O achado principal é o mesmo da fonte? O grau de certeza foi mantido (efeito, sem efeito, inconclusivo)? As limitações principais aparecem? Todo número está na fonte? O contexto dos estudos (país, etapa, tamanho) está dito? A recomendação cabe no que a evidência mostra? Quem lê sabe o que fazer com isso?
+Checklist: O achado principal é o mesmo da fonte? O grau de certeza foi mantido (efeito, sem efeito, inconclusivo)? As limitações principais aparecem? Todo número está na fonte? Todo número leva a sua condição: cenário, rede, referência de preço, ano e sinal? O contexto dos estudos (país, etapa, tamanho) está dito? A recomendação cabe no que a evidência mostra? Quem lê sabe o que fazer com isso?
 Texto original: [texto]
 Versão curta: [versão]
 ```
